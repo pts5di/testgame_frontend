@@ -72,6 +72,7 @@ function App() {
         "Joining your wizard arena!"
       ) : lobbyState.status == LobbyStatus.JOINED ? (
         <div className="WizardArena">
+          <div>Spells: {colyseusState.spellList.toString()}</div>
           <table>
             <tr>
               <td>

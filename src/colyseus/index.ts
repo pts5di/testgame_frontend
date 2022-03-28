@@ -16,12 +16,14 @@ export type ColyseusState = {
   playerSessionId: string;
   playerInfo: PlayerInfo;
   opponentInfo: PlayerInfo | null;
+  spellList: string[];
 };
 
 const initialState: ColyseusState = {
   playerSessionId: "",
   playerInfo: { health: -9999, name: "DEFAULT_PLAYER", currentSpell: "" },
   opponentInfo: null,
+  spellList: [],
 };
 export const colyseusSlice = createSlice({
   name: "colyseus",
@@ -40,6 +42,9 @@ export const colyseusSlice = createSlice({
     },
     setOpponentInfo: (state, action: PayloadAction<PlayerInfo>) => {
       state.opponentInfo = action.payload;
+    },
+    setSpellList: (state, action: PayloadAction<string[]>) => {
+      state.spellList = action.payload;
     },
 export const joinRoom = createAsyncThunk<void, string>(
   "lobby/joinRoom",
@@ -62,6 +67,7 @@ export const joinRoom = createAsyncThunk<void, string>(
         thunkAPI.dispatch(colyseusSlice.actions.setOpponentInfo(opponentInfo));
       }
       thunkAPI.dispatch(colyseusSlice.actions.setPlayerInfo(playerInfo));
+      thunkAPI.dispatch(colyseusSlice.actions.setSpellList(state.spells));
   }
 );
 const sleep = async (msToSleep: number) => {
