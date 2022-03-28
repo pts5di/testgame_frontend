@@ -3,12 +3,7 @@ import "./App.css";
 import { useAppSelector, useAppDispatch } from "./app/hooks";
 import { RootState } from "./app/store";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import {
-  joinRoom,
-  PlayerInfo,
-  spellCast,
-  spellChanged,
-} from "./colyseus";
+import { joinRoom, PlayerInfo, spellCast, spellChanged } from "./colyseus";
 
 enum LobbyStatus {
   DEFAULT = 0,
@@ -67,7 +62,7 @@ function App() {
   return (
     <div className="App">
       {lobbyState.status == LobbyStatus.DEFAULT ? (
-      <JoinForm />
+        <JoinForm />
       ) : lobbyState.status == LobbyStatus.JOINING ? (
         "Joining your wizard arena!"
       ) : lobbyState.status == LobbyStatus.JOINED ? (
@@ -85,6 +80,58 @@ function App() {
               </td>
             </tr>
             <tr>
+              <td colSpan={2}>Active Spells</td>
+            </tr>
+            <tr>
+              <td>
+                {/* Player's active spells */}
+                {colyseusState.activeSpellList
+                  .filter(
+                    (activeSpell) =>
+                      activeSpell.caster == colyseusState.playerSessionId
+                  )
+                  .map((activeSpell) => (
+                    <div>
+                      {activeSpell.spellName}{" "}
+                      <progress
+                        max={100}
+                        value={
+                          100 -
+                          ((activeSpell.castFinishTime -
+                            colyseusState.lastTickElapsedTime) /
+                            (activeSpell.castFinishTime -
+                              activeSpell.castStartTime)) *
+                            100
+                        }
+                      />
+                    </div>
+                  ))}
+              </td>
+              <td>
+                {/* Opponent's active spells */}
+                {colyseusState.activeSpellList
+                  .filter(
+                    (activeSpell) =>
+                      activeSpell.caster != colyseusState.playerSessionId
+                  )
+                  .map((activeSpell) => (
+                    <div>
+                      {activeSpell.spellName}{" "}
+                      <progress
+                        max={100}
+                        value={
+                          100 -
+                          ((activeSpell.castFinishTime -
+                            colyseusState.lastTickElapsedTime) /
+                            (activeSpell.castFinishTime -
+                              activeSpell.castStartTime)) *
+                            100
+                        }
+                      />
+                    </div>
+                  ))}
+              </td>
+            </tr>
             <tr>
               <td colSpan={2}>
                 <input
@@ -124,7 +171,7 @@ function JoinForm() {
         onClick={(event) => {
           dispatch(joinRoom(lobbyState.userName));
         }}
-          >
+      >
         Join a Duel
       </button>
     </>

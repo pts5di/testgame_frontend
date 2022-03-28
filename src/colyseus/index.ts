@@ -10,24 +10,40 @@ function getRoom(): Colyseus.Room<any> {
   return room;
 }
 
+export type ActiveSpell = {
+  spellName: string;
+  caster: string;
+  castStartTime: number;
+  castFinishTime: number;
+};
+
 export type PlayerInfo = { health: number; name: string; currentSpell: string };
 
 export type ColyseusState = {
+  lastTickElapsedTime: number;
   playerSessionId: string;
   playerInfo: PlayerInfo;
   opponentInfo: PlayerInfo | null;
   spellList: string[];
+  activeSpellList: ActiveSpell[];
 };
 
 const initialState: ColyseusState = {
+  lastTickElapsedTime: 0,
   playerSessionId: "",
   playerInfo: { health: -9999, name: "DEFAULT_PLAYER", currentSpell: "" },
   opponentInfo: null,
   spellList: [],
+  activeSpellList: [],
 };
+
 export const colyseusSlice = createSlice({
   name: "colyseus",
   initialState: initialState,
+  reducers: {
+    setLastTickElapsedTime: (state, action: PayloadAction<number>) => {
+      state.lastTickElapsedTime = action.payload;
+    },
     setPlayerSessionId: (state, action: PayloadAction<string>) => {
       state.playerSessionId = action.payload;
     },
@@ -46,6 +62,12 @@ export const colyseusSlice = createSlice({
     setSpellList: (state, action: PayloadAction<string[]>) => {
       state.spellList = action.payload;
     },
+    setActiveSpellList: (state, action: PayloadAction<ActiveSpell[]>) => {
+      state.activeSpellList = action.payload;
+    },
+  },
+});
+
 export const joinRoom = createAsyncThunk<void, string>(
   "lobby/joinRoom",
   async (userName, thunkAPI) => {
@@ -57,6 +79,10 @@ export const joinRoom = createAsyncThunk<void, string>(
     room.onStateChange((state: any) => {
       const room = getRoom();
       state = state.toJSON();
+      thunkAPI.dispatch(
+        colyseusSlice.actions.setLastTickElapsedTime(state.elapsedTime)
+      );
+
       const playerInfo = state.players[room.sessionId];
       const opponentName = Object.keys(state.players).find(
         (e: string) => e != room.sessionId
@@ -68,6 +94,10 @@ export const joinRoom = createAsyncThunk<void, string>(
       }
       thunkAPI.dispatch(colyseusSlice.actions.setPlayerInfo(playerInfo));
       thunkAPI.dispatch(colyseusSlice.actions.setSpellList(state.spells));
+      thunkAPI.dispatch(
+        colyseusSlice.actions.setActiveSpellList(state.activeSpells)
+      );
+    });
   }
 );
 const sleep = async (msToSleep: number) => {
