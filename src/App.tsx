@@ -1,57 +1,53 @@
-import React from 'react';
-import logo from './logo.svg';
-import { Counter } from './features/counter/Counter';
-import './App.css';
+import React from "react";
+import "./App.css";
+import { useAppSelector, useAppDispatch } from "./app/hooks";
+import { RootState } from "./app/store";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import {
+  joinRoom,
+} from "./colyseus";
+export const lobbySlice = createSlice({
+  name: "lobby",
+  initialState: {
+    userName: "",
+  reducers: {
+    setUserName: (state, action: PayloadAction<string>) => {
+      state.userName = action.payload;
+    },
+  },
+});
+
+function selectLobby(state: RootState) {
+  return state.lobby;
+}
 
 function App() {
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <Counter />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <span>
-          <span>Learn </span>
-          <a
-            className="App-link"
-            href="https://reactjs.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            React
-          </a>
-          <span>, </span>
-          <a
-            className="App-link"
-            href="https://redux.js.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Redux
-          </a>
-          <span>, </span>
-          <a
-            className="App-link"
-            href="https://redux-toolkit.js.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Redux Toolkit
-          </a>
-          ,<span> and </span>
-          <a
-            className="App-link"
-            href="https://react-redux.js.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            React Redux
-          </a>
-        </span>
-      </header>
+      <JoinForm />
     </div>
+  );
+}
+
+function JoinForm() {
+  const lobbyState = useAppSelector(selectLobby);
+  const dispatch = useAppDispatch();
+  return (
+    <>
+      <input
+        value={lobbyState.userName}
+        onChange={(event) => {
+          dispatch(lobbySlice.actions.setUserName(event.currentTarget.value));
+        }}
+      ></input>
+      <button
+        onClick={(event) => {
+          dispatch(joinRoom(lobbyState.userName));
+        }}
+          >
+        Join a Duel
+      </button>
+    </>
   );
 }
 
