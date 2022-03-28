@@ -5,6 +5,7 @@ import { RootState } from "./app/store";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import {
   joinRoom,
+  PlayerInfo,
 } from "./colyseus";
 
 enum LobbyStatus {
@@ -13,6 +14,7 @@ enum LobbyStatus {
   JOINED = 2,
   ERROR = 3,
 }
+
 export const lobbySlice = createSlice({
   name: "lobby",
   initialState: {
@@ -42,7 +44,24 @@ function selectLobby(state: RootState) {
   return state.lobby;
 }
 
+export const selectColyseusState = (state: RootState) => {
+  return state.colyseus;
+};
+function PlayerStatus(props: { player: PlayerInfo }) {
+  const player = props.player;
+  return (
+    <div>
+      <div>Name: {player.name}</div>
+      <div>Health: {player.health}</div>
+    </div>
+  );
+}
+
 function App() {
+  const lobbyState = useAppSelector(selectLobby);
+  const colyseusState = useAppSelector(selectColyseusState);
+  const dispatch = useAppDispatch();
+
   return (
     <div className="App">
       {lobbyState.status == LobbyStatus.DEFAULT ? (
@@ -51,6 +70,18 @@ function App() {
         "Joining your wizard arena!"
       ) : lobbyState.status == LobbyStatus.JOINED ? (
         <div className="WizardArena">
+          <table>
+            <tr>
+              <td>
+                <PlayerStatus player={colyseusState.playerInfo} />
+              </td>
+              <td>
+                {colyseusState.opponentInfo && (
+                  <PlayerStatus player={colyseusState.opponentInfo} />
+                )}
+              </td>
+            </tr>
+          </table>
         </div>
       ) : (
         "You have gone too far! An error has occurred!"

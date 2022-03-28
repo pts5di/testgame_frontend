@@ -1,9 +1,11 @@
 import { configureStore, ThunkAction, Action } from "@reduxjs/toolkit";
 import { lobbySlice } from "../App";
+import { colyseusSlice } from "../colyseus";
 
 export const store = configureStore({
   reducer: {
     lobby: lobbySlice.reducer,
+    colyseus: colyseusSlice.reducer,
   },
 });
 
