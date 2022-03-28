@@ -29,8 +29,14 @@ export const colyseusSlice = createSlice({
     setPlayerSessionId: (state, action: PayloadAction<string>) => {
       state.playerSessionId = action.payload;
     },
+    setPlayerCurrentSpell: (state, action: PayloadAction<string>) => {
+      state.playerInfo.currentSpell = action.payload;
+    },
     setPlayerInfo: (state, action: PayloadAction<PlayerInfo>) => {
-      state.playerInfo = action.payload;
+      state.playerInfo = {
+        ...action.payload,
+        currentSpell: state.playerInfo.currentSpell,
+      };
     },
     setOpponentInfo: (state, action: PayloadAction<PlayerInfo>) => {
       state.opponentInfo = action.payload;
@@ -56,5 +62,37 @@ export const joinRoom = createAsyncThunk<void, string>(
         thunkAPI.dispatch(colyseusSlice.actions.setOpponentInfo(opponentInfo));
       }
       thunkAPI.dispatch(colyseusSlice.actions.setPlayerInfo(playerInfo));
+  }
+);
+const sleep = async (msToSleep: number) => {
+  let resolve: (() => void) | null = null;
+  const promise = new Promise<void>((_resolve) => (resolve = _resolve));
+  window.setTimeout(() => resolve && resolve(), msToSleep);
+  return promise;
+};
+let spellChangedThrottle: Promise<void> | null = null;
+export const spellChanged = createAsyncThunk<void, string>(
+  "lobby/spellChanged",
+  async (currentSpell, thunkAPI) => {
+    thunkAPI.dispatch(
+      colyseusSlice.actions.setPlayerCurrentSpell(currentSpell)
+    );
+
+    if (!spellChangedThrottle) {
+      spellChangedThrottle = sleep(16);
+      const room = getRoom();
+      room.send("spellInProgress", { currentSpell });
+      await spellChangedThrottle;
+      spellChangedThrottle = null;
+    }
+  }
+);
+
+export const spellCast = createAsyncThunk<void, void>(
+  "lobby/spellCast",
+  async (_, thunkAPI) => {
+    const room = getRoom();
+    room.send("spellCast");
+    thunkAPI.dispatch(colyseusSlice.actions.setPlayerCurrentSpell(""));
   }
 );

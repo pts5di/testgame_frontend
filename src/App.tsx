@@ -6,6 +6,8 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import {
   joinRoom,
   PlayerInfo,
+  spellCast,
+  spellChanged,
 } from "./colyseus";
 
 enum LobbyStatus {
@@ -79,6 +81,22 @@ function App() {
                 {colyseusState.opponentInfo && (
                   <PlayerStatus player={colyseusState.opponentInfo} />
                 )}
+              </td>
+            </tr>
+            <tr>
+            <tr>
+              <td colSpan={2}>
+                <input
+                  value={colyseusState.playerInfo.currentSpell}
+                  onKeyPress={(event) => {
+                    if (event.key.toUpperCase() == "ENTER") {
+                      dispatch(spellCast());
+                    }
+                  }}
+                  onChange={(event) => {
+                    dispatch(spellChanged(event.currentTarget.value));
+                  }}
+                />
               </td>
             </tr>
           </table>
